@@ -1,6 +1,6 @@
 use battery::{Battery, State as BatteryState, units::energy::watt_hour};
 use std::time::Duration;
-
+#[derive(Debug)]
 pub struct BatteryInfo {
     pub name: String,
     pub state: BatteryState,
@@ -9,6 +9,7 @@ pub struct BatteryInfo {
     pub percentage: f32,
     pub energy: f32,
     pub energy_full: f32,
+    pub energy_full_design: f32,
     pub energy_rate: f32,
     pub time_to_empty: Option<Duration>,
     pub time_to_full: Option<Duration>,
@@ -27,6 +28,7 @@ impl BatteryInfo {
             percentage: battery.state_of_charge().value * 100.0,
             energy: battery.energy().get::<watt_hour>(),
             energy_full: battery.energy_full().get::<watt_hour>(),
+            energy_full_design: battery.energy_full_design().get::<watt_hour>(),
             energy_rate: battery.energy_rate().value,
             time_to_empty: battery
                 .time_to_empty()

@@ -1,6 +1,6 @@
 use crate::app::Message;
 use crate::chart::PLOT_SECONDS;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local};
 use iced::{
     Size,
     widget::canvas::{Cache, Frame, Geometry},
@@ -11,7 +11,7 @@ use std::{collections::VecDeque, time::Duration};
 
 pub struct EnergyRateChart {
     cache: Cache,
-    data_points: VecDeque<(DateTime<Utc>, f32)>,
+    data_points: VecDeque<(DateTime<Local>, f32)>,
     limit: Duration,
 }
 
@@ -26,7 +26,7 @@ impl Default for EnergyRateChart {
 }
 
 impl EnergyRateChart {
-    pub fn push_data(&mut self, time: DateTime<Utc>, value: f32) {
+    pub fn push_data(&mut self, time: DateTime<Local>, value: f32) {
         let cur_ms = time.timestamp_millis();
         self.data_points.push_front((time, value));
 
@@ -91,7 +91,7 @@ impl Chart<Message> for EnergyRateChart {
             .x_labels(5)
             .x_label_formatter(&|dt| dt.format("%H:%M:%S").to_string())
             .x_desc("Time")
-            .y_desc("Energy Rate (W)")
+            .y_desc("ER(w)")
             .y_labels(5)
             .light_line_style(&WHITE.mix(0.3))
             .axis_style(&WHITE.mix(0.8))

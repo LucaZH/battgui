@@ -6,9 +6,8 @@ use crate::ui::components::*;
 use battery::{Manager, State as BatteryState};
 use chrono::Utc;
 use iced::{
-    font,
+    Alignment, Color, Element, Font, Length, Task, font,
     widget::{Column, Container, Row, Text},
-    Alignment, Color, Element, Font, Length, Task,
 };
 use plotters_iced::ChartWidget;
 use std::time::Instant;
@@ -83,12 +82,14 @@ impl State {
         if !self.batteries_initialized && !updated_info.is_empty() {
             self.batteries_initialized = true;
             for info in &updated_info {
-                self.energy_rate_chart.push_data(now, info.energy_rate);
+                self.energy_rate_chart
+                    .push_data(now.into(), info.energy_rate);
             }
         } else if !updated_info.is_empty() {
             let avg_energy_rate =
                 updated_info.iter().map(|b| b.energy_rate).sum::<f32>() / updated_info.len() as f32;
-            self.energy_rate_chart.push_data(now, avg_energy_rate);
+            self.energy_rate_chart
+                .push_data(now.into(), avg_energy_rate);
         }
 
         self.battery_info = updated_info;
@@ -180,15 +181,26 @@ impl State {
 
         let left = Column::new()
             .spacing(5)
+            .push(info_row(
+                "Health",
+                &format!(
+                    "{:.1}%",
+                    (info.energy_full * 100.00) / info.energy_full_design
+                ),
+            ))
             .push(info_row("Charge", &format!("{:.1}%", info.percentage)))
             .push(info_row("Voltage", &format!("{:.2} V", info.voltage)))
+            .push(info_row(
+                "Energy Rate",
+                &format!("{:.2} W", info.energy_rate),
+            ))
             .push(info_row(
                 "Energy",
                 &format!("{:.2} Wh / {:.2} Wh", info.energy, info.energy_full),
             ))
             .push(info_row(
-                "Energy Rate",
-                &format!("{:.2} W", info.energy_rate),
+                "Energy Full design",
+                &format!("{:.2} W", info.energy_full_design),
             ));
 
         let middle = Column::new()
