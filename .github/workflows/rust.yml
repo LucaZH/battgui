@@ -4,6 +4,9 @@ on:
   push:
     branches: ["master"]
 
+permissions:
+  contents: write
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -17,7 +20,6 @@ jobs:
       - name: Determine next version tag
         id: get_version
         run: |
-          # Fetch all tags
           git fetch --tags
 
           latest_tag=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
