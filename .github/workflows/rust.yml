@@ -35,7 +35,7 @@ jobs:
           tar -czvf output/battgui-x86_64-linux.tar.gz -C output battgui
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: battgui-x86_64-linux
           path: output/battgui-x86_64-linux.tar.gz
