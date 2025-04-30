@@ -93,8 +93,8 @@ impl Chart<Message> for EnergyRateChart {
             .x_desc("Time")
             .y_desc("ER(w)")
             .y_labels(5)
-            .light_line_style(&WHITE.mix(0.3))
-            .axis_style(&WHITE.mix(0.8))
+            .light_line_style(WHITE.mix(0.3))
+            .axis_style(WHITE.mix(0.8))
             .label_style(("sans-serif", 14))
             .draw()
             .unwrap();
@@ -105,7 +105,7 @@ impl Chart<Message> for EnergyRateChart {
                 y_min,
                 RGBColor(0, 175, 255).mix(0.3),
             )
-            .border_style(&BLUE.mix(0.8)),
+            .border_style(BLUE.mix(0.8)),
         )
         .unwrap();
     }

@@ -50,11 +50,8 @@ impl State {
     }
 
     pub fn update(&mut self, message: Message) {
-        match message {
-            Message::Tick => {
-                self.update_battery_info();
-            }
-            _ => {}
+        if let Message::Tick = message {
+            self.update_battery_info();
         }
     }
 
