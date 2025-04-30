@@ -19,8 +19,23 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
 
-      - name: Build
-        run: cargo build --verbose
+      - name: Build (release)
+        run: cargo build --verbose --release
 
       - name: Run tests
         run: cargo test
+
+      - name: Prepare artifact
+        run: |
+          mkdir output
+          cp target/release/battgui output/
+
+      - name: Archive binary
+        run: |
+          tar -czvf output/battgui-x86_64-linux.tar.gz -C output battgui
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: battgui-x86_64-linux
+          path: output/battgui-x86_64-linux.tar.gz
