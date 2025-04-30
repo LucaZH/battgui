@@ -3,8 +3,6 @@ name: Rust
 on:
   push:
     branches: ["master"]
-  pull_request:
-    branches: ["master"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,6 +13,32 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Determine next version tag
+        id: get_version
+        run: |
+          # Fetch all tags
+          git fetch --tags
+
+          latest_tag=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+
+          if [ -z "$latest_tag" ]; then
+            new_tag="v0.0.1"
+          else
+            IFS='.' read -r major minor patch <<< "${latest_tag#v}"
+            new_patch=$((patch + 1))
+            new_tag="v$major.$minor.$new_patch"
+          fi
+
+          echo "New version tag: $new_tag"
+          echo "::set-output name=new_tag::$new_tag"
+
+      - name: Create new version tag
+        run: |
+          git tag ${{ steps.get_version.outputs.new_tag }}
+          git push origin ${{ steps.get_version.outputs.new_tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
@@ -34,8 +58,22 @@ jobs:
         run: |
           tar -czvf output/battgui-x86_64-linux.tar.gz -C output battgui
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        id: create_release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/create-release@v1
         with:
-          name: battgui-x86_64-linux
-          path: output/battgui-x86_64-linux.tar.gz
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: "Automated release for version ${{ github.ref }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release asset
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: output/battgui-x86_64-linux.tar.gz
+          asset_name: battgui-x86_64-linux.tar.gz
+          asset_content_type: application/gzip
