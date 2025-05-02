@@ -2,7 +2,7 @@ name: Rust
 
 on:
   push:
-    branches: ["test_ci"]
+    branches: ["master"]
     tags:
       - "v*.*.*"
 
