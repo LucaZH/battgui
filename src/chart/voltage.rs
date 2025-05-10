@@ -9,13 +9,13 @@ use plotters::prelude::*;
 use plotters_iced::{Chart, ChartBuilder, Renderer, plotters_backend::DrawingBackend};
 use std::{collections::VecDeque, time::Duration};
 
-pub struct EnergyRateChart {
+pub struct VoltageChart {
     cache: Cache,
     data_points: VecDeque<(DateTime<Local>, f32)>,
     limit: Duration,
 }
 
-impl Default for EnergyRateChart {
+impl Default for VoltageChart {
     fn default() -> Self {
         Self {
             cache: Cache::new(),
@@ -25,7 +25,7 @@ impl Default for EnergyRateChart {
     }
 }
 
-impl EnergyRateChart {
+impl VoltageChart {
     pub fn push_data(&mut self, time: DateTime<Local>, value: f32) {
         let cur_ms = time.timestamp_millis();
         self.data_points.push_front((time, value));
@@ -43,7 +43,7 @@ impl EnergyRateChart {
     }
 }
 
-impl Chart<Message> for EnergyRateChart {
+impl Chart<Message> for VoltageChart {
     type State = ();
 
     fn draw<R: Renderer, F: Fn(&mut Frame)>(
@@ -70,7 +70,7 @@ impl Chart<Message> for EnergyRateChart {
             .iter()
             .map(|(_, y)| *y)
             .fold(f32::NEG_INFINITY, f32::max);
-        let margin = 5.0;
+        let margin = 1.0;
         let y_min = (min_y - margin).floor().max(0.0);
         let y_max = (max_y + margin).ceil();
 
@@ -81,7 +81,7 @@ impl Chart<Message> for EnergyRateChart {
 
         let mut root = chart
             .margin(10)
-            .caption("Energy Rate Over Time", ("sans-serif", 20).into_font())
+            .caption("Voltage Over Time", ("sans-serif", 20).into_font())
             .set_label_area_size(LabelAreaPosition::Left, 40)
             .set_label_area_size(LabelAreaPosition::Bottom, 40)
             .build_cartesian_2d(start_time..end_time, y_min..y_max)
@@ -96,7 +96,7 @@ impl Chart<Message> for EnergyRateChart {
                     String::new()
                 }
             })
-            .y_desc("W")
+            .y_desc("V")
             .y_labels(10)
             .light_line_style(WHITE.mix(0.3))
             .axis_style(WHITE.mix(0.8))
@@ -108,9 +108,9 @@ impl Chart<Message> for EnergyRateChart {
             AreaSeries::new(
                 self.data_points.iter().map(|(x, y)| (*x, *y)),
                 y_min,
-                RGBColor(255, 20, 147).mix(0.4),
+                RGBColor(0, 255, 255).mix(0.4),
             )
-            .border_style(RGBColor(255, 255, 0).mix(0.7)),
+            .border_style(RGBColor(57, 255, 20).mix(0.7)),
         )
         .unwrap();
     }

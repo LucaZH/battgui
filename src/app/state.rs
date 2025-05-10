@@ -2,6 +2,7 @@ use crate::app::Message;
 use crate::app::SAMPLE_EVERY;
 use crate::battery::info::BatteryInfo;
 use crate::chart::energy_rate::EnergyRateChart;
+use crate::chart::voltage::VoltageChart;
 use crate::ui::components::*;
 use battery::{Manager, State as BatteryState};
 use chrono::Utc;
@@ -9,6 +10,7 @@ use iced::{
     Alignment, Color, Element, Font, Length, Task, font,
     widget::{Column, Container, Row, Text},
 };
+
 use plotters_iced::ChartWidget;
 use std::time::Instant;
 
@@ -26,6 +28,7 @@ pub struct State {
     battery_info: Vec<BatteryInfo>,
     last_sample_time: Instant,
     energy_rate_chart: EnergyRateChart,
+    voltage_chart: VoltageChart,
     batteries_initialized: bool,
 }
 
@@ -38,12 +41,13 @@ impl State {
                 battery_info: Vec::new(),
                 last_sample_time: Instant::now(),
                 energy_rate_chart: EnergyRateChart::default(),
+                voltage_chart: VoltageChart::default(),
                 batteries_initialized: false,
             },
             Task::batch([
-                font::load(include_bytes!("../fonts/notosans-regular.ttf").as_slice())
+                font::load(include_bytes!("../../resources/fonts/notosans-regular.ttf").as_slice())
                     .map(Message::FontLoaded),
-                font::load(include_bytes!("../fonts/notosans-bold.ttf").as_slice())
+                font::load(include_bytes!("../../resources/fonts/notosans-bold.ttf").as_slice())
                     .map(Message::FontLoaded),
             ]),
         )
@@ -87,6 +91,9 @@ impl State {
                 updated_info.iter().map(|b| b.energy_rate).sum::<f32>() / updated_info.len() as f32;
             self.energy_rate_chart
                 .push_data(now.into(), avg_energy_rate);
+            let avg_voltage =
+                updated_info.iter().map(|b| b.voltage).sum::<f32>() / updated_info.len() as f32;
+            self.voltage_chart.push_data(now.into(), avg_voltage);
         }
 
         self.battery_info = updated_info;
@@ -110,15 +117,20 @@ impl State {
             );
         } else {
             content = content.push(
-                Column::new()
-                    .spacing(10)
-                    .width(Length::Fill)
-                    .push(
-                        Text::new("Energy Rate (Watts)")
-                            .size(SUB_TITLE_FONT_SIZE)
-                            .font(FONT_BOLD),
-                    )
-                    .push(ChartWidget::new(&self.energy_rate_chart).height(Length::FillPortion(2))),
+                Column::new().spacing(10).width(Length::Fill).push(
+                    Row::new()
+                        .spacing(20)
+                        .width(Length::Fill)
+                        .push(
+                            Column::new().push(
+                                ChartWidget::new(&self.energy_rate_chart)
+                                    .height(Length::FillPortion(2)),
+                            ),
+                        )
+                        .push(Column::new().push(
+                            ChartWidget::new(&self.voltage_chart).height(Length::FillPortion(2)),
+                        )),
+                ),
             );
 
             for (idx, info) in self.battery_info.iter().enumerate() {
@@ -164,16 +176,16 @@ impl State {
         };
 
         let status_color = match info.state {
-            BatteryState::Charging => Color::from_rgb(0.2, 0.8, 0.2),
+            BatteryState::Charging => Color::from_rgb(0.33, 0.8, 0.33),
             BatteryState::Discharging => {
                 if info.percentage < 20.0 {
-                    Color::from_rgb(0.8, 0.2, 0.2)
+                    Color::from_rgb(0.9, 0.4, 0.4)
                 } else {
-                    Color::from_rgb(0.2, 0.2, 0.8)
+                    Color::from_rgb(0.4, 0.6, 1.0)
                 }
             }
-            BatteryState::Full => Color::from_rgb(0.0, 0.7, 0.0),
-            _ => Color::BLACK,
+            BatteryState::Full => Color::from_rgb(0.3, 0.7, 0.3),
+            _ => Color::from_rgb(0.5, 0.5, 0.5),
         };
 
         let left = Column::new()
